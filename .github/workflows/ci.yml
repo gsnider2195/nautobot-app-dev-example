@@ -87,6 +87,7 @@ jobs:
       INVOKE_NAUTOBOT_DEV_EXAMPLE_PYTHON_VER: "${{ matrix.python-version }}"
       INVOKE_NAUTOBOT_DEV_EXAMPLE_NAUTOBOT_VER: "${{ matrix.nautobot-version }}"
       INVOKE_NAUTOBOT_DEV_EXAMPLE_LOCAL: "true"
+      NAUTOBOT_CONFIG: "development/nautobot_config.py"
     steps:
       - name: "Check out repository code"
         uses: "actions/checkout@v4"
