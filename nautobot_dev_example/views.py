@@ -1,7 +1,7 @@
 """Views for nautobot_dev_example."""
 
-from nautobot.apps.views import NautobotUIViewSet
 from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, SectionChoices
+from nautobot.apps.views import NautobotUIViewSet
 
 from nautobot_dev_example import filters, forms, models, tables
 from nautobot_dev_example.api import serializers
