@@ -1,5 +1,6 @@
 """Views for nautobot_dev_example."""
 
+from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, SectionChoices
 from nautobot.apps.views import NautobotUIViewSet
 
 from nautobot_dev_example import filters, forms, models, tables
@@ -17,3 +18,13 @@ class DevExampleUIViewSet(NautobotUIViewSet):
     queryset = models.DevExample.objects.all()
     serializer_class = serializers.DevExampleSerializer
     table_class = tables.DevExampleTable
+
+    object_detail_content = ObjectDetailContent(
+        panels=[
+            ObjectFieldsPanel(
+                weight=100,
+                section=SectionChoices.LEFT_HALF,
+                fields="__all__",
+            ),
+        ],
+    )
