@@ -1054,7 +1054,7 @@ def parse_poetry_version_constraint(constraint):
         else:
             max_v = max_version(v, "patch")
         return v, max_v
-    # Compatible ~= 
+    # Compatible ~=
     if constraint.startswith("~="):
         v = constraint[2:]
         parts = v.split(".")
@@ -1116,6 +1116,7 @@ def parse_poetry_version_constraint(constraint):
 )
 def check_compatibility_matrix(context, fix=False):
     """Check compatibility matrix for the current Nautobot version."""
+
     def read_file_lines(path):
         if not path.exists():
             raise Exit(f"File not found: {path}")
