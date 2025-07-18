@@ -1097,7 +1097,7 @@ def parse_poetry_version_constraint(constraint):
         return min_v, max_v
     # Exact version or ==<version>
     # e.g. 2.0.3 or ==2.0.3
-    m = re.match(r"==?\s*([0-9.]+)", constraint)
+    m = re.match(r"(?:==)?\s*([0-9.]+)", constraint)
     if m:
         v = m[1]
         return v, v
