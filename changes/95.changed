@@ -1,0 +1,1 @@
+Updated Poetry version in CI and pyproject.toml build-system.requires to 2.1.3.
