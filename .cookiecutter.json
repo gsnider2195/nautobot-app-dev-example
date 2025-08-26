@@ -10,7 +10,7 @@
         "project_slug": "nautobot-app-dev-example",
         "repo_url": "https://github.com/nautobot/nautobot-app-dev-example",
         "base_url": "dev-example",
-        "min_nautobot_version": "2.0.0",
+        "min_nautobot_version": "2.4.11",
         "max_nautobot_version": "2.9999",
         "camel_name": "NautobotDevExample",
         "project_short_description": "Nautobot App to demonstrate how to create a Nautobot App.",
@@ -21,7 +21,7 @@
         "_drift_manager": {
             "template": "https://github.com/nautobot/cookiecutter-nautobot-app.git",
             "template_dir": "nautobot-app",
-            "template_ref": "refs/tags/nautobot-app-v2.4.2",
+            "template_ref": "refs/tags/nautobot-app-v2.5.0",
             "cookie_dir": "",
             "branch_prefix": "drift-manager",
             "pull_request_strategy": "create",
@@ -30,7 +30,7 @@
                 "poetry"
             ],
             "draft": false,
-            "baked_commit_ref": "3b134afc94dba0e25c7be3426334da554e0baf93"
+            "baked_commit_ref": "816ebdf78f6c2379e16fd1443fa67eb516e8b59b"
         }
     }
 }

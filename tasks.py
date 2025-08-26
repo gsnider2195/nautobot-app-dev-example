@@ -52,7 +52,7 @@ namespace = Collection("nautobot_dev_example")
 namespace.configure(
     {
         "nautobot_dev_example": {
-            "nautobot_ver": "2.3.1",
+            "nautobot_ver": "2.4.11",
             "project_name": "nautobot-dev-example",
             "python_ver": "3.11",
             "local": False,
@@ -275,7 +275,7 @@ def lock(context, check=False, constrain_nautobot_ver=False, constrain_python_ve
                 command += f" --python {context.nautobot_dev_example.python_ver}"
             run_command(context, command)
     else:
-        command = f"poetry {'check' if check else 'lock --no-update'}"
+        command = f"poetry {'check' if check else 'lock'}"
         run_command(context, command)
 
 
@@ -958,7 +958,7 @@ def tests(context, failfast=False, keepdb=False, lint_only=False):
     validate_app_config(context)
     if not lint_only:
         print("Running unit tests...")
-        unittest(context, failfast=failfast, keepdb=keepdb, coverage=True)
+        unittest(context, failfast=failfast, keepdb=keepdb, coverage=True, skip_docs_build=True)
         unittest_coverage(context)
         coverage_lcov(context)
     print("All tests have passed!")

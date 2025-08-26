@@ -13,7 +13,7 @@ This is a quick reference guide if you're already familiar with the development 
 
 The [Invoke](http://www.pyinvoke.org/) library is used to provide some helper commands based on the environment. There are a few configuration parameters which can be passed to Invoke to override the default configuration:
 
-- `nautobot_ver`: the version of Nautobot to use as a base for any built docker containers (default: 2.0.0)
+- `nautobot_ver`: the version of Nautobot to use as a base for any built docker containers (default: 2.4.11)
 - `project_name`: the default docker compose project name (default: `nautobot-dev-example`)
 - `python_ver`: the version of Python to use as a base for any built docker containers (default: 3.11)
 - `local`: a boolean flag indicating if invoke tasks should be run on the host or inside the docker containers (default: False, commands will be run in docker containers)
@@ -36,6 +36,7 @@ This project is managed by [Python Poetry](https://python-poetry.org/) and has a
 Once you have Poetry and Docker installed you can run the following commands (in the root of the repository) to install all other development dependencies in an isolated Python virtual environment:
 
 ```shell
+poetry self add poetry-plugin-shell
 poetry shell
 poetry install
 invoke build
@@ -62,6 +63,7 @@ nautobot_dev_example:
 Run the following commands:
 
 ```shell
+poetry self add poetry-plugin-shell
 poetry shell
 poetry install --extras nautobot
 export $(cat development/development.env | xargs)
@@ -152,6 +154,8 @@ The `pyproject.toml` file outlines all of the relevant dependencies for the proj
 The `poetry shell` command is used to create and enable a virtual environment managed by Poetry, so all commands ran going forward are executed within the virtual environment. This is similar to running the `source venv/bin/activate` command with virtualenvs. To install project dependencies in the virtual environment, you should run `poetry install` - this will install **both** project and development dependencies.
 
 For more details about Poetry and its commands please check out its [online documentation](https://python-poetry.org/docs/).
+
+In Poetry version 2, the shell command was moved out of the main Poetry project and into a plugin. For more details about the Poetry shell plugin, refer to its [GitHub repository](https://github.com/python-poetry/poetry-plugin-shell).
 
 ## Full Docker Development Environment
 
@@ -408,7 +412,7 @@ namespace.configure(
     {
         "nautobot_dev_example": {
             ...
-            "nautobot_ver": "2.0.0",
+            "nautobot_ver": "2.4.11",
 	    ...
         }
     }
