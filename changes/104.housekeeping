@@ -1,2 +1,0 @@
-Updated CI to use ubuntu-latest image.
-Changed CI SLACK_WEBHOOK_URL secret to OSS_PYPI_SLACK_WEBHOOK_URL.
