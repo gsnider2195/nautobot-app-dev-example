@@ -91,11 +91,14 @@ def _await_healthy_container(context, container_id):
         print(f"Waiting for `{container_id}` container to become healthy ...")
         sleep(1)
 
+
 def _parse_python_cli_value(val):
     """
-    Accepts 'X.Y' or 'X.Y.Z' and returns:
+    Accepts 'X.Y' or 'X.Y.Z'.
+
+    Returns a tuple of:
       - major_minor: 'X.Y'
-      - min_spec   : 'X.Y' or 'X.Y.Z' (to use as the lower bound in pyproject)
+      - min_spec   : 'X.Y' or 'X.Y.Z' (to use as the lower bound in pyproject).
     """
     m = re.match(r"^(\d+)\.(\d+)(?:\.(\d+))?$", val.strip())
     if not m:
@@ -107,8 +110,9 @@ def _parse_python_cli_value(val):
 
 def _update_poetry_python_constraint(min_python):
     """
-    Update the minimum Python requirement in pyproject.toml to >=min_python,
-    preserving any existing upper bound (<X.Y...). Supports:
+    Update the minimum Python requirement in pyproject.toml to >=min_python, preserving any existing upper bound (<X.Y...).
+
+    Supports:
       - Poetry classic: [tool.poetry.dependencies].python
     """
     p = Path("pyproject.toml")
@@ -139,7 +143,6 @@ def _update_poetry_python_constraint(min_python):
             return
 
     raise Exit("Could not locate Python requirement in pyproject.toml.")
-
 
 
 def task(function=None, *args, **kwargs):
@@ -310,7 +313,6 @@ def _get_docker_nautobot_version(context, nautobot_ver=None, python_ver=None):
 )
 def lock(context, check=False, constrain_nautobot_ver=False, constrain_python_ver=""):
     """Generate poetry.lock; optionally constrain Nautobot and/or Python (with patch)."""
-
     target_mm = None
 
     if constrain_python_ver:
