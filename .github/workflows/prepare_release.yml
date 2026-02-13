@@ -132,7 +132,24 @@ jobs:
           FINAL_NOTES="$TOWNCRIER_NOTES"$'\n\n'"$CONTRIBUTORS_SECTION"$'\n\n'"$GH_FOOTER"
           
           # Save to a temporary file to avoid shell argument length limits
-          echo "$FINAL_NOTES" > consolidated_notes.md
+          echo "$FINAL_NOTES" > ../consolidated_notes.md
+
+      - name: Commit Changes and Push
+        run: |
+          # Add all changes (pyproject.toml, poetry.lock, etc.)
+          git add .
+          git commit -m "chore: prepare release v${{ env.NEW_VERSION }}"
+          git push origin "${{ env.RELEASE_BRANCH }}"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Release v${{ env.NEW_VERSION }}" \
+            --body-file "../consolidated_notes.md" \
+            --base "${{ github.event.inputs.source_branch }}" \
+            --head "${{ env.RELEASE_BRANCH }}"
 
       - name: Create Draft Release
         env:
@@ -150,7 +167,7 @@ jobs:
             --draft \
             $RELEASE_FLAGS \
             --title "v${{ env.NEW_VERSION }}" \
-            --notes-file consolidated_notes.md \
+            --notes-file "../consolidated_notes.md" \
             --target "${{ github.event.inputs.source_branch }}"
 # @task(
 #     help={
