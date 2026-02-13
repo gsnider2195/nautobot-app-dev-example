@@ -134,7 +134,7 @@ jobs:
           echo "$FINAL_NOTES" > ../consolidated_notes.md
 
       - name: Generate Release Notes
-        run: poetry run inv generate_release_notes --version "${{ env.NEW_VERSION }}" --date "${{ env.RELEASE_DATE }}"
+        run: poetry run inv generate-release-notes --version "${{ env.NEW_VERSION }}" --date "${{ env.RELEASE_DATE }}"
 
       - name: Commit Changes and Push
         run: |
