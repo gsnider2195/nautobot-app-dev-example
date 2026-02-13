@@ -1,0 +1,34 @@
+---
+name: "CI"
+on: # yamllint disable-line rule:truthy rule:comments
+  release:
+    types: ["published"]
+
+env:
+  APP_NAME: "nautobot-dev-example"
+
+jobs:
+ create-pr-to-develop:
+    if: github.event.release.target_commitish == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Create branch from main into develop
+        run: |
+          TAG_NAME=${{ github.event.release.tag_name }}
+          VERSION=${VERSION#v}
+
+          BRANCH_NAME="release-${VERSION}-to-develop"
+
+          git checkout -b "BRANCH_NAME" ${{ github.ref }}
+          git push origin "BRANCH_NAME"
+
+      - name: Create Pull Request to Develop
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: "${{ github.ref }}-to-develop"
+          destination_branch: "develop"
+          pr_title: "Sync: ${{ github.event.release.title }} to develop"
+          pr_body: "Automated PR to sync changes from merged branch `${{ github.ref }}` into `develop`."
+          github_token: ${{ secrets.GITHUB_TOKEN }}
