@@ -28,7 +28,7 @@ class DevExampleUIViewSet(NautobotUIViewSet):
     object_detail_content = ObjectDetailContent(
         panels=[
             ObjectFieldsPanel(
-                weight=100,
+                weight=10,
                 section=SectionChoices.LEFT_HALF,
                 fields="__all__",
                 # Alternatively, you can specify a list of field names:
