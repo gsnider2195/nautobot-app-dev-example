@@ -104,3 +104,39 @@ jobs:
   #               }
   #             ]
   #           }
+
+
+  create-pr-to-develop:
+    name: "Create a PR from main into develop"
+    needs:
+    - "publish-github"
+    # TODO: ADD THIS.
+    # - "publish-pypi" 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Create release branch from main
+        id: branch
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          VERSION="${TAG_NAME#v}"
+
+          BRANCH_NAME="release-${VERSION}-to-develop"
+
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request to develop
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: ${{ steps.branch.outputs.branch_name }}
+          destination_branch: develop
+          pr_title: Post release ${{ github.event.release.tag_name }} to develop
+          github_token: ${{ secrets.GITHUB_TOKEN }}
