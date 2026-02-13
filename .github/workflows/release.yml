@@ -128,6 +128,12 @@ jobs:
 
           BRANCH_NAME="release-${VERSION}-to-develop"
 
+          # Ensure release branch doesn't already exist
+          if git rev-parse --verify origin/$BRANCH_NAME > /dev/null 2>&1; then
+            echo "Error: Release branch $BRANCH_NAME already exists."
+            exit 1
+          fi
+
           git checkout -b "$BRANCH_NAME"
           git push origin "$BRANCH_NAME"
 
