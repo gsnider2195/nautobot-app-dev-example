@@ -143,8 +143,11 @@ jobs:
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request to develop
-        with:
-          source_branch: ${{ steps.branch.outputs.branch_name }}
-          destination_branch: develop
-          pr_title: Post release ${{ github.event.release.tag_name }} to develop
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "Post release ${{ github.event.release.tag_name }} to develop" \
+            --base "develop" \
+            --head "${{ steps.branch.outputs.branch_name }}"
+            
