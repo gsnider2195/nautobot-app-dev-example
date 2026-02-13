@@ -107,6 +107,7 @@ jobs:
 
 
   create-pr-to-develop:
+    if: github.event.release.target_commitish == 'main'
     permissions:
       contents: "write"
       pull-requests: "write"
