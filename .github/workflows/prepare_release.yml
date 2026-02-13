@@ -97,10 +97,61 @@ jobs:
       - name: "Regenerate poetry.lock"
         run: "poetry lock --regenerate"
 
-
-      - name: "Prepare release notes"
+      - name: Generate and Parse Release Notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          poetry run prepare-release --version "${{ env.NEW_VERSION }}" --source-branch "${{ github.event.inputs.source-branch }}" --date "${{ github.event.inputs.date }}" --previous-version "${{ github.event.inputs.previous-version }}"
+          # 1. Get Towncrier Draft
+          TOWNCRIER_NOTES=$(poetry run towncrier build --version "${{ env.NEW_VERSION }}" --draft)
+
+          # 2. Call GitHub API to generate raw notes
+          # This is the equivalent of your Python 'generate_notes_url' call
+          RAW_GH_NOTES=$(gh api /repos/${{ github.repository }}/releases/generate-notes \
+            -f tag_name="v${{ env.NEW_VERSION }}" \
+            -f target_commitish="${{ github.event.inputs.source_branch }}" \
+            -f previous_tag_name="${{ env.PREVIOUS_TAG }}" --jq '.body')
+
+          # 3. Parse usernames (Regex match)
+          # We use grep to find "@user" patterns, sort, and uniq them
+          USERNAMES=$(echo "$RAW_GH_NOTES" | grep -oP 'by @\K[a-zA-Z0-9-]+' | sort -u | grep -vE 'dependabot|nautobot-bot' || true)
+          
+          # 4. Format the Contributors section
+          CONTRIBUTORS_SECTION="## Contributors"
+          for user in $USERNAMES; do
+            CONTRIBUTORS_SECTION="$CONTRIBUTORS_SECTION"$'\n'"* @$user"
+          done
+
+          # 5. Extract the "Full Changelog" or "New Contributors" part
+          # Using sed to grab everything from '## New Contributors' or '**Full Changelog**' to the end
+          GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/## New Contributors/,$p')
+          if [ -z "$GH_FOOTER" ]; then
+            GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/**Full Changelog**/,$p')
+          fi
+
+          # 6. Combine everything
+          FINAL_NOTES="$TOWNCRIER_NOTES"$'\n\n'"$CONTRIBUTORS_SECTION"$'\n\n'"$GH_FOOTER"
+          
+          # Save to a temporary file to avoid shell argument length limits
+          echo "$FINAL_NOTES" > consolidated_notes.md
+
+      - name: Create Draft Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event.inputs.bump_rule }}" == "prerelease" ]]; then
+            RELEASE_FLAGS="--prerelease"
+          elif [[ "${{ github.event.inputs.source_branch }}" == "main" ]]; then
+            RELEASE_FLAGS="--latest"
+          else
+            RELEASE_FLAGS="--latest=false"
+          fi
+
+          gh release create "v${{ env.NEW_VERSION }}" \
+            --draft \
+            $RELEASE_FLAGS \
+            --title "v${{ env.NEW_VERSION }}" \
+            --notes-file consolidated_notes.md \
+            --target "${{ github.event.inputs.source_branch }}"
 # @task(
 #     help={
 #         "version": "Version of this App to generate the release for or valid poetry bump rule(default: current version).",
