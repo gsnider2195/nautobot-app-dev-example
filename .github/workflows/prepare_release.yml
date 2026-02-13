@@ -33,7 +33,8 @@ jobs:
       - name: Checkout code
         uses: "actions/checkout@v4"
         with:
-          ref: ${{ github.event.inputs.source_branch }}
+          # If source_branch is 'main', use 'develop' because we cut the release from main, but start with develop. Otherwise, use the input value as with LTM and Next we cut from the same branch.
+          ref: ${{ github.event.inputs['source_branch'] == 'main' && 'develop' || github.event.inputs['source_branch'] }}
           fetch-depth: 0  # Fetch all history for git tags
 
       - name: "Setup environment"
@@ -120,8 +121,8 @@ jobs:
           done
 
           # 5. Extract the "Full Changelog" or "New Contributors" part
-          # Using sed to grab everything from '## New Contributors' or '**Full Changelog**' to the end
-          GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/## New Contributors/,$p')
+          # Using awk to grab everything from '## New Contributors' or '**Full Changelog**' to the end
+          GH_FOOTER=$(echo "$RAW_GH_NOTES" | awk '/## New Contributors/ || /\*\*Full Changelog\*\*/ {found=1} found {print}')
           if [ -z "$GH_FOOTER" ]; then
             GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/**Full Changelog**/,$p')
           fi
