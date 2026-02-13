@@ -107,6 +107,9 @@ jobs:
 
 
   create-pr-to-develop:
+    permissions:
+      contents: "write"
+      pull-requests: "write"
     name: "Create a PR from main into develop"
     needs:
     - "publish-github"
