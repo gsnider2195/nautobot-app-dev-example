@@ -140,7 +140,6 @@ jobs:
           echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request to develop
-        uses: repo-sync/pull-request@v2
         with:
           source_branch: ${{ steps.branch.outputs.branch_name }}
           destination_branch: develop
