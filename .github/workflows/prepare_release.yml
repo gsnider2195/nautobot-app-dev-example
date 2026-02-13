@@ -33,14 +33,15 @@ jobs:
       - name: Checkout code
         uses: "actions/checkout@v4"
         with:
-          ref: ${{ github.event.inputs.source_branch }}
+          # If source_branch is 'main', use 'develop' because we cut the release from main, but start with develop. Otherwise, use the input value as with LTM and Next we cut from the same branch.
+          ref: ${{ github.event.inputs['source_branch'] == 'main' && 'develop' || github.event.inputs['source_branch'] }}
           fetch-depth: 0  # Fetch all history for git tags
 
       - name: "Setup environment"
         uses: "networktocode/gh-action-setup-poetry-environment@v6"
         with:
           poetry-version: "2.1.3"
-          poetry-install-options: "--only-root"
+          poetry-install-options: "--with dev"
 
       - name: Validate Branch and Tags
         run: |
@@ -86,8 +87,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+          # Ensure release branch doesn't already exist
+          if git rev-parse --verify origin/${{ env.RELEASE_BRANCH }} > /dev/null 2>&1; then
+            echo "Error: Release branch ${{ env.RELEASE_BRANCH }} already exists."
+            exit 1
+          fi
 
           # Create a new branch for the release
           git checkout -b "${{ env.RELEASE_BRANCH }}"
@@ -106,7 +113,7 @@ jobs:
           # This is the equivalent of your Python 'generate_notes_url' call
           RAW_GH_NOTES=$(gh api /repos/${{ github.repository }}/releases/generate-notes \
             -f tag_name="v${{ env.NEW_VERSION }}" \
-            -f target_commitish="${{ github.event.inputs.source_branch }}" \
+            -f target_commitish="${{ github.event.inputs['source_branch'] == 'main' && 'develop' || github.event.inputs['source_branch'] }}" \
             -f previous_tag_name="${{ env.PREVIOUS_TAG }}" --jq '.body')
 
           # 3. Parse usernames (Regex match)
@@ -120,8 +127,8 @@ jobs:
           done
 
           # 5. Extract the "Full Changelog" or "New Contributors" part
-          # Using sed to grab everything from '## New Contributors' or '**Full Changelog**' to the end
-          GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/## New Contributors/,$p')
+          # Using awk to grab everything from '## New Contributors' or '**Full Changelog**' to the end
+          GH_FOOTER=$(echo "$RAW_GH_NOTES" | awk '/## New Contributors/ || /\*\*Full Changelog\*\*/ {found=1} found {print}')
           if [ -z "$GH_FOOTER" ]; then
             GH_FOOTER=$(echo "$RAW_GH_NOTES" | sed -n '/**Full Changelog**/,$p')
           fi
@@ -133,7 +140,7 @@ jobs:
           echo "$FINAL_NOTES" > ../consolidated_notes.md
 
       - name: Generate Release Notes
-        run: poetry run inv generate_release_notes --version "${{ env.NEW_VERSION }}" --date "${{ env.RELEASE_DATE }}"
+        run: poetry run inv generate-release-notes --version "${{ env.NEW_VERSION }}" --date "${{ env.RELEASE_DATE }}"
 
       - name: Commit Changes and Push
         run: |
@@ -167,6 +174,6 @@ jobs:
           gh release create "v${{ env.NEW_VERSION }}" \
             --draft \
             $RELEASE_FLAGS \
-            --title "v${{ env.NEW_VERSION }}" \
+            --title "v${{ env.NEW_VERSION }} - ${{ env.RELEASE_DATE }}" \
             --notes-file "../consolidated_notes.md" \
             --target "${{ github.event.inputs.source_branch }}"
