@@ -46,6 +46,26 @@ jobs:
           poetry-version: "2.1.3"
           poetry-install-options: "--only-root"
 
+      - name: Validate Branch and Tags
+        run: |
+          # 1. Verify branch exists
+          if ! git rev-parse --verify origin/${{ github.event.inputs.source_branch }} > /dev/null 2>&1; then
+            echo "Error: Branch ${{ github.event.inputs.source_branch }} does not exist."
+            exit 1
+          fi
+          
+          # 2. Try to get the previous version tag
+          # If it fails (no tags), get the hash of the first commit
+          if PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null); then
+            echo "PREVIOUS_TAG=$PREV_TAG" >> $GITHUB_ENV
+            echo "Found previous tag: $PREV_TAG"
+          else
+            # Fallback to the first commit in the repository
+            FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+            echo "PREVIOUS_TAG=$FIRST_COMMIT" >> $GITHUB_ENV
+            echo "No tags found. Falling back to initial commit: $FIRST_COMMIT"
+          fi
+
       - name: Determine New Version
         id: versioning
         run: |
@@ -80,7 +100,7 @@ jobs:
 
       - name: "Prepare release notes"
         run: |
-          poetry run prepare-release --version "${{ github.event.inputs.version }}" --source-branch "${{ github.event.inputs.source-branch }}" --date "${{ github.event.inputs.date }}" --previous-version "${{ github.event.inputs.previous-version }}"
+          poetry run prepare-release --version "${{ env.NEW_VERSION }}" --source-branch "${{ github.event.inputs.source-branch }}" --date "${{ github.event.inputs.date }}" --previous-version "${{ github.event.inputs.previous-version }}"
 # @task(
 #     help={
 #         "version": "Version of this App to generate the release for or valid poetry bump rule(default: current version).",
