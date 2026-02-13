@@ -1,8 +1,10 @@
 ---
 name: "CI"
-on: # yamllint disable-line rule:truthy rule:comments
-  release:
-    types: ["published"]
+# on: # yamllint disable-line rule:truthy rule:comments
+#   release:
+#     types: ["published"]
+on:
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -13,7 +15,7 @@ env:
 
 jobs:
   create-pr-to-develop:
-    if: github.event.release.target_commitish == 'main'
+    if: "${{ github.event_name == 'release' && startsWith(github.ref_name, 'v') }}"    
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
