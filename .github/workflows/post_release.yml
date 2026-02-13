@@ -4,6 +4,10 @@ on: # yamllint disable-line rule:truthy rule:comments
   release:
     types: ["published"]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 env:
   APP_NAME: "nautobot-dev-example"
 
@@ -12,23 +16,28 @@ jobs:
     if: github.event.release.target_commitish == 'main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout main
         uses: actions/checkout@v4
-      - name: Create branch from main into develop
+        with:
+          ref: main
+
+      - name: Create release branch from main
+        id: branch
         run: |
           TAG_NAME=${{ github.event.release.tag_name }}
-          VERSION=${VERSION#v}
+          VERSION=${TAG_NAME#v}
 
           BRANCH_NAME="release-${VERSION}-to-develop"
 
-          git checkout -b "BRANCH_NAME" ${{ github.ref }}
+          git checkout -b "BRANCH_NAME"
           git push origin "BRANCH_NAME"
 
-      - name: Create Pull Request to Develop
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request to develop
         uses: repo-sync/pull-request@v2
         with:
-          source_branch: "${{ github.ref }}-to-develop"
-          destination_branch: "develop"
-          pr_title: "Sync: ${{ github.event.release.title }} to develop"
-          pr_body: "Automated PR to sync changes from merged branch `${{ github.ref }}` into `develop`."
+          source_branch: ${{ steps.branch.outputs.branch_name }}
+          destination_branch: develop
+          pr_title: Post release ${{ github.event.release.tag_name }} to develop
           github_token: ${{ secrets.GITHUB_TOKEN }}
