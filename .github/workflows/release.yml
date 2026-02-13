@@ -107,7 +107,9 @@ jobs:
 
 
   create-pr-to-develop:
-    if: "${{ github.event_name == 'release' && startsWith(github.ref_name, 'v') }}"    
+    name: "Create a PR from main into develop"
+    needs:
+    - "publish-github"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main
