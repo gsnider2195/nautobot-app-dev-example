@@ -752,6 +752,103 @@ def generate_release_notes(context, version="", date="", keep=False):
     context.run(command)
 
 
+def _bump_pyproject_version(version_bump):
+    """Bump the version in pyproject.toml according to the version_bump type.
+
+    Args:
+        version_bump (str): One of "prerelease", "major", or "minor"
+
+    Returns:
+        str: The new version string
+
+    Raises:
+        ValueError: If version_bump is not one of the allowed values
+        Exit: If the version cannot be parsed or updated
+    """
+    if version_bump not in ("prerelease", "major", "minor"):
+        raise ValueError(f"version_bump must be one of 'prerelease', 'major', or 'minor', got '{version_bump}'")
+
+    pyproject_path = Path(__file__).parent / "pyproject.toml"
+    if not pyproject_path.exists():
+        raise Exit(f"pyproject.toml not found at {pyproject_path}")
+
+    # Read the current content
+    content = pyproject_path.read_text()
+
+    # Find the version line using regex
+    version_pattern = r'^version\s*=\s*["\']([^"\']+)["\']'
+    match = re.search(version_pattern, content, re.MULTILINE)
+    if not match:
+        raise Exit("Could not find version in pyproject.toml")
+
+    current_version = match.group(1)
+
+    # Parse the version (handle PEP 440 format like 2.3.0a0, 2.3.0, etc.)
+    # Match: major.minor.patch[pre-release]
+    version_regex = r'^(\d+)\.(\d+)\.(\d+)(([a-zA-Z]+)(\d+))?$'
+    version_match = re.match(version_regex, current_version)
+    if not version_match:
+        raise Exit(f"Could not parse version '{current_version}'")
+
+    major = int(version_match.group(1))
+    minor = int(version_match.group(2))
+    patch = int(version_match.group(3))
+    prerelease_full = version_match.group(4)  # e.g., "a0" or None
+    prerelease_letter = version_match.group(5)  # e.g., "a" or None
+    prerelease_num_str = version_match.group(6)  # e.g., "0" or None
+    prerelease_num = int(prerelease_num_str) if prerelease_num_str else None
+
+    # Bump the version according to the type
+    if version_bump == "major":
+        new_version = f"{major + 1}.0.0"
+    elif version_bump == "minor":
+        new_version = f"{major}.{minor + 1}.0"
+    elif version_bump == "prerelease":
+        if prerelease_full:
+            # Increment the prerelease number (e.g., a0 -> a1)
+            new_prerelease_num = (prerelease_num or 0) + 1
+            new_version = f"{major}.{minor}.{patch}{prerelease_letter}{new_prerelease_num}"
+        else:
+            # Add a new prerelease (e.g., 2.3.0 -> 2.3.0a0)
+            new_version = f"{major}.{minor}.{patch}a0"
+    else:
+        raise ValueError(f"Unexpected version_bump value: {version_bump}")
+
+    # Replace the version in the content
+    new_content = re.sub(version_pattern, f'version = "{new_version}"', content, flags=re.MULTILINE)
+
+    # Write back to file
+    pyproject_path.write_text(new_content)
+
+    print(f"Bumped version from {current_version} to {new_version}")
+    return new_version
+
+
+@task(
+    name="prepare-release",
+    help={
+        "base_branch": "Base branch to prepare release from (default: develop).",
+        "version_bump": "Type of version bump: 'prerelease', 'major', or 'minor' (default: prerelease).",
+    },
+)
+def prepare_release(context, base_branch="develop", version_bump="prerelease"):
+    """Prepare a release by bumping the version in pyproject.toml.
+
+    Args:
+        context: Invoke context
+        base_branch: Base branch name (default: develop)
+        version_bump: Type of version bump - one of 'prerelease', 'major', or 'minor' (default: prerelease)
+    """
+    if version_bump not in ("prerelease", "major", "minor"):
+        raise Exit(f"version_bump must be one of 'prerelease', 'major', or 'minor', got '{version_bump}'")
+
+    print(f"Preparing release from base branch: {base_branch}")
+    print(f"Version bump type: {version_bump}")
+
+    new_version = _bump_pyproject_version(version_bump)
+    print(f"Version bumped to: {new_version}")
+
+
 # ------------------------------------------------------------------------------
 # TESTS
 # ------------------------------------------------------------------------------

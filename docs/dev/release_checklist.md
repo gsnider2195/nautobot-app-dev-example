@@ -54,6 +54,22 @@ Ensure that continuous integration testing on the `develop` branch is completing
 
 ### Bump the Version
 
+You can bump the version and generate release notes **either** locally with Invoke **or** using the GitHub Actions workflow.
+
+#### Option A: Use the `Stage Release` GitHub Action (recommended)
+
+1. In GitHub, go to **Actions → Stage Release → Run workflow**.
+2. Choose the appropriate:
+   - **Base branch** (typically `develop`)
+   - **Version bump** (`prerelease`, `minor`, or `major`)
+   - Optional **date** for the release notes
+3. Run the workflow. It will:
+   - Call `invoke prepare-release` to bump the version in `pyproject.toml`.
+   - Call `invoke generate-release-notes` to generate the release notes for the new version.
+4. Once the workflow completes, pull the updated branch locally and continue with the next steps in this guide.
+
+#### Option B: Bump the version locally with Poetry
+
 Update the package version using `poetry version` if necessary ([poetry docs](https://python-poetry.org/docs/cli/#version)). This command shows the current version of the project or bumps the version of the project and writes the new version back to `pyproject.toml` if a valid bump rule is provided.
 
 The new version must be a valid semver string or a valid bump rule: `patch`, `minor`, `major`, `prepatch`, `preminor`, `premajor`, `prerelease`. Always try to use a bump rule when you can.
@@ -104,7 +120,10 @@ Bumping version from 1.1.0 to 1.1.1
     - You will need to have the project's poetry environment built at this stage, as the towncrier command runs **locally only**. If you don't have it, run `poetry install` first.
     - You can also set the version explicitly with `invoke generate-release-notes --version 1.4.2` if it needs to be different from what's in `pyproject.toml`.
 
-First, create a release branch off of `develop` (`git switch -c release-1.4.2 develop`) and automatically generate release notes with `invoke generate-release-notes`.
+First, create a release branch off of `develop` (`git switch -c release-1.4.2 develop`) and automatically generate release notes with either:
+
+- `invoke generate-release-notes` (locally), **or**
+- The `Stage Release` GitHub Action, which calls `invoke generate-release-notes` for you.
 
 If you're releasing a new major or minor version, this will create a new `docs/admin/release_notes/version_{major}.{minor}.md` file. Please fill in the `Release Overview` section in that file manually with a user-friendly summary of the most notable changes!
 
