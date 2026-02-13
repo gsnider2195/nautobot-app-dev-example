@@ -9,6 +9,12 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v2.4.1 (2026-02-13)](https://github.com/nautobot/nautobot-app-dev-example/releases/tag/v2.4.1)
+
+### Changed
+
+- [#21](https://github.com/nautobot/nautobot-app-dev-example/issues/21) - Changed the weight of one of the components in the detail view.
+
 ## [v2.4.0 (2026-02-13)](https://github.com/nautobot/nautobot-app-dev-example/releases/tag/v2.4.0)
 
 ### Fixed
