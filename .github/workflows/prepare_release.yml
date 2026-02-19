@@ -18,7 +18,7 @@ on:
         required: true
         default: "main"
       date:
-        description: "Date of the release (default: today)."
+        description: "Date of the release YYYY-MM-DD (default: today)."
         required: false
         default: ""
 
