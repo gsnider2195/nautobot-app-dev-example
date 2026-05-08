@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nautobot-dev-example"
-version = "3.0.3"
+version = "3.0.5a1"
 description = "Nautobot App to demonstrate how to create a Nautobot App."
 authors = ["Network to Code, LLC <opensource@networktocode.com>"]
 license = "Apache-2.0"
@@ -101,7 +101,7 @@ notes = """,
 
 [tool.ruff]
 line-length = 120
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
