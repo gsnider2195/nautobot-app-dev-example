@@ -106,7 +106,7 @@ jobs:
   #           }
 
   create-post-release-pr:
-    if: "github.event.release.target_commitish == 'main' || startsWith(github.event.release.target_commitish, 'ltm-')"
+    if: "contains(fromJSON('[\"main\", \"develop\", \"next\"]'), github.event.release.target_commitish) || startsWith(github.event.release.target_commitish, 'ltm-')"
     permissions:
       contents: "write"
       pull-requests: "write"
