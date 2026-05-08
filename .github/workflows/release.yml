@@ -110,7 +110,7 @@ jobs:
     permissions:
       contents: "write"
       pull-requests: "write"
-    name: "Create a PR from main into develop"
+    name: "${{ github.event.release.target_commitish == 'main' && 'Create a PR from main into develop' || format('Create a PR to merge into {0}', github.event.release.target_commitish) }}"
     # needs:
     #   - "publish-github"
     #   - "publish-pypi"
