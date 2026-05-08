@@ -152,11 +152,45 @@ jobs:
         env:
           GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
-          gh pr create \
+          PR_DATA=$(gh pr create \
             --title "Release v${{ env.NEW_VERSION }}" \
             --body-file "../consolidated_notes.md" \
             --base "${{ github.event.inputs.target_branch }}" \
-            --head "${{ env.RELEASE_BRANCH }}"
+            --head "${{ env.RELEASE_BRANCH }}")
+
+          # Extract PR number from URL and set environment variable
+          echo "PR_NUMBER=$(basename "$PR_DATA")" >> $GITHUB_ENV
+
+      - name: "Close and Re-open PR to Trigger Checks"
+        env:
+          GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        # This is necessary because GitHub doesn't run Actions on PRs created by bots using GITHUB_TOKEN
+        # See: https://github.com/orgs/community/discussions/25602
+        run: |
+          echo "Applying close/re-open workaround to trigger GitHub Actions checks..."
+
+          echo "Validating PR #${{ env.PR_NUMBER }} exists."
+          if ! gh pr view "${{ env.PR_NUMBER }}"; then
+            echo "Error: PR #${{ env.PR_NUMBER }} not found"
+            exit 1
+          fi
+
+          echo "Closing PR #${{ env.PR_NUMBER }}..."
+          if ! gh pr close "${{ env.PR_NUMBER }}"; then
+            echo "Error: Failed to close PR #${{ env.PR_NUMBER }}"
+            exit 1
+          fi
+
+          echo "Sleep 5 seconds for GitHub API operations to complete..."
+          sleep 5
+
+          echo "Re-opening PR #${{ env.PR_NUMBER }} to trigger Actions checks..."
+          if ! gh pr reopen "${{ env.PR_NUMBER }}"; then
+            echo "Error: Failed to re-open PR #${{ env.PR_NUMBER }}"
+            exit 1
+          fi
+
+          echo "Successfully applied close/re-open workaround for PR #${{ env.PR_NUMBER }}"
 
       - name: "Create Draft Release"
         env:
