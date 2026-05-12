@@ -1,0 +1,17 @@
+<!-- This file only contains the list of votes -->
+<ul id="vote-list">
+    {% for vote in votes %}
+        <li>
+            <strong>{{ vote.user.username }}</strong>:
+            {% if table.is_revealed %}
+                {{ vote.value }}
+            {% else %}
+                <span style="filter: blur(4px);">??</span>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>No votes yet.</li>
+    {% endfor %}
+</ul>
+
+<p>Status: <strong>{% if table.is_revealed %}REVEALED{% else %}Voting...{% endif %}</strong></p>

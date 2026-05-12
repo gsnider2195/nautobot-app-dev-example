@@ -1,5 +1,8 @@
 """Views for nautobot_dev_example."""
 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.views.generic import TemplateView, View
 from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, SectionChoices
 from nautobot.apps.views import NautobotUIViewSet
 
@@ -52,3 +55,61 @@ class DevExampleUIViewSet(NautobotUIViewSet):
             # ),
         ],
     )
+
+
+class PokerNewTableView(View):
+    def get(self, request):
+        table = models.PokerTable.objects.create()
+        return redirect(reverse("plugins:nautobot_dev_example:poker_table", kwargs={"table_id": table.id}))
+
+
+class PokerTableView(TemplateView):
+    """Renders the main page."""
+
+    template_name = "nautobot_dev_example/poker_table.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # table_id comes from the URL kwargs
+        context["table"] = get_object_or_404(models.PokerTable, id=self.kwargs["table_id"])
+        return context
+
+
+class PokerPollView(TemplateView):
+    """Renders only the partial HTML fragment for htmx polling."""
+
+    template_name = "nautobot_dev_example/poker_votes.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        table = get_object_or_404(models.PokerTable, id=self.kwargs["table_id"])
+        context["table"] = table
+        context["votes"] = models.Vote.objects.filter(table=table).select_related("user")
+        return context
+
+
+class PokerActionView(View):
+    """Handles POST actions: vote, reveal, and clear."""
+
+    def post(self, request, table_id):
+        table = get_object_or_404(models.PokerTable, id=table_id)
+        action = request.POST.get("action")
+
+        if action == "vote":
+            value = request.POST.get("value")
+            models.Vote.objects.update_or_create(
+                table=table, user=request.user, defaults={"value": int(value) if value else None}
+            )
+        elif action == "reveal":
+            table.is_revealed = True
+            table.save()
+        elif action == "clear":
+            table.is_revealed = False
+            table.is_cleared = True
+            models.Vote.objects.filter(table=table).delete()
+            table.is_cleared = False
+            table.save()
+
+        # After the action, return the updated partial immediately
+        votes = models.Vote.objects.filter(table=table).select_related("user")
+        return render(request, "nautobot_dev_example/poker_votes.html", {"table": table, "votes": votes})

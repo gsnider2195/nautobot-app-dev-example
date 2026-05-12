@@ -1,11 +1,14 @@
 """Models for Nautobot Dev Example App."""
 
 # Django imports
+from django.contrib.auth import get_user_model
 from django.db import models
 
 # Nautobot imports
 from nautobot.apps.constants import CHARFIELD_MAX_LENGTH
 from nautobot.apps.models import PrimaryModel, extras_features
+
+User = get_user_model()
 
 
 # If you want to choose a specific model to overload in your class declaration, please reference the following documentation:
@@ -34,3 +37,15 @@ class DevExample(PrimaryModel):  # pylint: disable=too-many-ancestors
     def __str__(self):
         """Stringify instance."""
         return self.name
+
+
+class PokerTable(models.Model):
+    name = models.CharField(max_length=100)
+    is_revealed = models.BooleanField(default=False)
+    is_cleared = models.BooleanField(default=False)
+
+
+class Vote(models.Model):
+    table = models.ForeignKey(PokerTable, on_delete=models.CASCADE, related_name="votes")
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    value = models.IntegerField(null=True, blank=True)  # Null means "hasn't voted yet"

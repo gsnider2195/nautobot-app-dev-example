@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="poker-container"
+     hx-get="{% url 'plugins:nautobot_dev_example:poker_poll' table.id %}"
+     hx-trigger="every 2s"
+     hx-target="#vote-content">
+
+    <!-- This is where the partial is injected -->
+    <div id="vote-content">
+        {% include 'nautobot_dev_example/poker_votes.html' %}
+    </div>
+</div>
+
+<hr>
+
+<div id="controls">
+    <!-- Form for Voting -->
+    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
+        {% csrf_token %}
+        <input type="number" name="value" placeholder="Points">
+        <input type="hidden" name="action" value="vote">
+        <button type="submit">Vote</button>
+    </form>
+
+    <!-- Form for Revealing -->
+    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reveal">
+        <button type="submit">Reveal</button>
+    </form>
+
+    <!-- Form for Clearing -->
+    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="clear">
+        <button type="submit">Clear</button>
+    </form>
+</div>
+{% endblock content %}
