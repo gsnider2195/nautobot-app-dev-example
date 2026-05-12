@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Planning Poker{% endblock title %}
+
 {% block content %}
 <div id="poker-container"
      hx-get="{% url 'plugins:nautobot_dev_example:poker_poll' table.id %}"
@@ -14,27 +16,63 @@
 
 <hr>
 
-<div id="controls">
-    <!-- Form for Voting -->
-    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
-        {% csrf_token %}
-        <input type="number" name="value" placeholder="Points">
-        <input type="hidden" name="action" value="vote">
-        <button type="submit">Vote</button>
-    </form>
+<div id="vote-controls">
+    <!-- All buttons use the same hx-post endpoint -->
+    <!-- hx-vals tells HTMX: "Include this JSON data in the POST body" -->
 
-    <!-- Form for Revealing -->
-    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="reveal">
-        <button type="submit">Reveal</button>
-    </form>
+    {% csrf_token %}
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 1}'
+            hx-target="#vote-content">1</button>
 
-    <!-- Form for Clearing -->
-    <form hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}" hx-target="#vote-content">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="clear">
-        <button type="submit">Clear</button>
-    </form>
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 2}'
+            hx-target="#vote-content">2</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 3}'
+            hx-target="#vote-content">3</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 5}'
+            hx-target="#vote-content">5</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 8}'
+            hx-target="#vote-content">8</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 13}'
+            hx-target="#vote-content">13</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 21}'
+            hx-target="#vote-content">21</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-secondary"
+            hx-vals='{"action": "vote", "value": 34}'
+            hx-target="#vote-content">34</button>
+
+    <hr>
+
+    <!-- Control Buttons (No values needed, just the action) -->
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-primary"
+            hx-vals='{"action": "reveal"}'
+            hx-target="#vote-content">Reveal</button>
+
+    <button hx-post="{% url 'plugins:nautobot_dev_example:poker_action' table.id %}"
+            class="btn btn-primary"
+            hx-vals='{"action": "clear"}'
+            hx-target="#vote-content">Clear</button>
 </div>
+
 {% endblock content %}
