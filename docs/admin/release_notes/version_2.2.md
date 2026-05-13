@@ -53,3 +53,6 @@ This document describes all new features and changes in the release. The format 
 - [#215](https://github.com/nautobot/nautobot-app-dev-example/issues/215) - Add default labels to issue templates.
 - [#517](https://github.com/nautobot/nautobot-app-dev-example/issues/517) - Added searchable models to AppConfig.
 - Rebaked from the cookie `nautobot-app-v2.5.0`.
+
+
+# SOME LTM Release notes
