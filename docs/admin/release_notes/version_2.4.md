@@ -9,6 +9,12 @@ This document describes all new features and changes in the release. The format 
 
 <!-- towncrier release notes start -->
 
+## [v2.4.8 (2026-05-13)](https://github.com/nautobot/nautobot-app-dev-example/releases/tag/v2.4.8)
+
+### Added
+
+- [#51](https://github.com/nautobot/nautobot-app-dev-example/issues/51) - Added Sync Release notes from ltm to develop workflow.
+
 ## [v2.4.7 (2026-05-13)](https://github.com/nautobot/nautobot-app-dev-example/releases/tag/v2.4.7)
 
 ### Changed
