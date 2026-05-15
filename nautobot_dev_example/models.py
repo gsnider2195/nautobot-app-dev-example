@@ -6,7 +6,7 @@ from django.db import models
 
 # Nautobot imports
 from nautobot.apps.constants import CHARFIELD_MAX_LENGTH
-from nautobot.apps.models import PrimaryModel, extras_features
+from nautobot.apps.models import BaseModel, PrimaryModel, extras_features
 
 User = get_user_model()
 
@@ -39,13 +39,13 @@ class DevExample(PrimaryModel):  # pylint: disable=too-many-ancestors
         return self.name
 
 
-class PokerTable(models.Model):
+class PokerTable(BaseModel):
     name = models.CharField(max_length=100)
     is_revealed = models.BooleanField(default=False)
     is_cleared = models.BooleanField(default=False)
 
 
-class Vote(models.Model):
+class Vote(BaseModel):
     table = models.ForeignKey(PokerTable, on_delete=models.CASCADE, related_name="votes")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     value = models.IntegerField(null=True, blank=True)  # Null means "hasn't voted yet"

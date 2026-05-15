@@ -1,10 +1,11 @@
 """Views for nautobot_dev_example."""
 
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import redirect
 from django.urls import reverse
-from django.views.generic import TemplateView, View
 from nautobot.apps.ui import ObjectDetailContent, ObjectFieldsPanel, SectionChoices
-from nautobot.apps.views import NautobotUIViewSet
+from nautobot.apps.views import NautobotUIViewSet, ObjectDetailViewMixin, ObjectListViewMixin
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 # if/when use the table, uncomment the following lines
 # from nautobot.core.templatetags import helpers
@@ -57,42 +58,35 @@ class DevExampleUIViewSet(NautobotUIViewSet):
     )
 
 
-class PokerNewTableView(View):
-    def get(self, request):
-        table = models.PokerTable.objects.create()
-        return redirect(reverse("plugins:nautobot_dev_example:poker_table", kwargs={"table_id": table.id}))
+class PokerTableUIViewSet(ObjectDetailViewMixin):
+    """ViewSet for PokerTable views."""
 
+    filterset_class = None
+    filterset_form_class = None
+    form_class = None
+    lookup_field = "pk"
+    queryset = models.PokerTable.objects.all()
+    serializer_class = None
+    table_class = None
 
-class PokerTableView(TemplateView):
-    """Renders the main page."""
+    # object_detail_content = ObjectDetailContent(
+    #     panels=[
+    #         ObjectFieldsPanel(
+    #             weight=100,
+    #             section=SectionChoices.LEFT_HALF,
+    #             fields=["name", "is_revealed", "is_cleared"],
+    #         ),
+    #     ],
+    # )
 
-    template_name = "nautobot_dev_example/poker_table.html"
+    @action(url_path="poll", detail=True)
+    def poll(self, request, *args, **kwargs):
+        table = self.get_object()
+        return Response({"votes": models.Vote.objects.filter(table=table).select_related("user")})
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # table_id comes from the URL kwargs
-        context["table"] = get_object_or_404(models.PokerTable, id=self.kwargs["table_id"])
-        return context
-
-
-class PokerPollView(TemplateView):
-    """Renders only the partial HTML fragment for htmx polling."""
-
-    template_name = "nautobot_dev_example/poker_votes.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        table = get_object_or_404(models.PokerTable, id=self.kwargs["table_id"])
-        context["table"] = table
-        context["votes"] = models.Vote.objects.filter(table=table).select_related("user")
-        return context
-
-
-class PokerActionView(View):
-    """Handles POST actions: vote, reveal, and clear."""
-
-    def post(self, request, table_id):
-        table = get_object_or_404(models.PokerTable, id=table_id)
+    @action(url_path="action", methods=["POST"], detail=True)
+    def action_endpoint(self, request, *args, **kwargs):
+        table = self.get_object()
         action = request.POST.get("action")
 
         if action == "vote":
@@ -110,6 +104,5 @@ class PokerActionView(View):
             table.is_cleared = False
             table.save()
 
-        # After the action, return the updated partial immediately
-        votes = models.Vote.objects.filter(table=table).select_related("user")
-        return render(request, "nautobot_dev_example/poker_votes.html", {"table": table, "votes": votes})
+        # After the action, return the updated poll fragment immediately
+        return redirect(reverse("plugins:nautobot_dev_example:pokertable_poll", kwargs={"pk": table.id}))
